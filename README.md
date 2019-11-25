@@ -2,7 +2,7 @@
 一个基于 fasttext + faiss + flask的商品相关推荐实现，商品内容相似推荐
 
 
-#### 训练商品的特征向量，商品向量add到faiss
+#### 训练商品的特征向量，特征包括大类，小类，中类，产地，品牌，商品向量add到faiss
 ```
 python embedding_recsys.py
 ```
