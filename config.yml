@@ -18,10 +18,7 @@ data:
   mysql_port: 3306
   mysql_db: recsys
   mysql_user: root
-  mysql_password: gp123456
-  hbase_host: 212.64.108.245
-  hbase_port: 9090
-  hbase_table: RECSYS_MATCH_CONTENT_SIMILAR
+  mysql_password: password
 
 weight:
   PTY_NUM_1_weight: 0.1

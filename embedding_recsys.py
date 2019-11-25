@@ -91,7 +91,7 @@ if __name__ == "__main__":
     }
 
     query = """select distinct ITEM_NUM_ID, PTY_NUM_1, PTY_NUM_2, PTY_NUM_3, PRODUCT_ORIGIN_NUM_ID, BRAND_ID 
-               from g_super_goods_data where ITEM_NUM_ID is not null"""
+               from goods_data where ITEM_NUM_ID is not null"""
 
     # 读取商品数据
     conn = connect_mysql(mysql_host, mysql_port, mysql_db, mysql_user, mysql_password)
