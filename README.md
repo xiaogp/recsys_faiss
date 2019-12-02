@@ -20,8 +20,7 @@ server {
     listen 8089; # 指定监听的端口
     charset utf-8;
 
-    #server_name 127.0.0.1; # ip地址
-    server_name 10.128.122.236;
+    server_name 127.0.0.1; # ip地址
     location / {
         include      uwsgi_params;
         uwsgi_pass   127.0.0.1:8088;
