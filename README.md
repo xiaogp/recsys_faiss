@@ -79,17 +79,18 @@ spu = 3
 
 #### 接口压力测试
 ```
-siege -c 100 -r 5 -t 10s -b "http://127.0.0.1:8089/faiss/similar_items/?spu=3"
-Transactions:		        6961 hits
+siege -c 100 -r 5 -t 10s -b "http://*.*.*.*:8089/faiss/similar_items/?spu=3"
+
+Transactions:		       34520 hits
 Availability:		      100.00 %
-Elapsed time:		        9.90 secs
-Data transferred:	        5.40 MB
-Response time:		        0.14 secs
-Transaction rate:	      703.13 trans/sec
-Throughput:		        0.55 MB/sec
-Concurrency:		       98.67
-Successful transactions:        6961
+Elapsed time:		        9.54 secs
+Data transferred:	        9.48 MB
+Response time:		        0.03 secs
+Transaction rate:	     3618.45 trans/sec
+Throughput:		        0.99 MB/sec
+Concurrency:		       99.49
+Successful transactions:       34520
 Failed transactions:	           0
-Longest transaction:	        0.29
-Shortest transaction:	        0.02
+Longest transaction:	        0.08
+Shortest transaction:	        0.00
 ```
