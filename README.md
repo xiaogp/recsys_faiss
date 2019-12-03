@@ -55,7 +55,7 @@ spu = 3
 +-------------+--------------------------------------+
 ```
 
-推荐结果
+#### 推荐结果
 ```
 +-------------+---------------------------------------------------------------------------+
 | ITEM_NUM_ID | ITEM_NAME                                                                 |
@@ -75,4 +75,21 @@ spu = 3
 |       92237 | 卓德含乳饮品（草莓口味）460克（4*115克）                                  |
 |           6 | 卓德脱脂含乳饮品（水蜜桃口味）                                            |
 +-------------+---------------------------------------------------------------------------+
+```
+
+#### 接口压力测试
+```
+siege -c 100 -r 5 -t 10s -b "http://127.0.0.1:8089/faiss/similar_items/?spu=3"
+Transactions:		        5552 hits
+Availability:		      100.00 %
+Elapsed time:		        9.06 secs
+Data transferred:	        4.30 MB
+Response time:		        0.16 secs
+Transaction rate:	      612.80 trans/sec
+Throughput:		        0.48 MB/sec
+Concurrency:		       98.62
+Successful transactions:        5552
+Failed transactions:	           0
+Longest transaction:	        0.41
+Shortest transaction:	        0.04
 ```
