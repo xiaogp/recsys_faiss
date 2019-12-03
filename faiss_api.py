@@ -8,6 +8,7 @@ from utils import load_yaml_config
 config = load_yaml_config("./config.yml")
 faiss_model_path = config["model"]["faiss_model_path"]
 faiss_topn = config["model"]["faiss_topn"]
+index = faiss.read_index(faiss_model_path)
 
 app = Flask(__name__)
 
@@ -32,8 +33,6 @@ def check():
 
 # 功能函数
 def faiss_search(spu):
-    # 导入模型
-    index = faiss.read_index(faiss_model_path)
     try:
         # 通过spu重建向量
         D, I = index.search(index.reconstruct(spu).reshape(1, -1), faiss_topn)
