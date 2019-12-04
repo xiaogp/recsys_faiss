@@ -33,7 +33,7 @@ def check():
 def faiss_search(spu, n_items):
     try:
         # 通过spu重建向量
-        D, I = index.search(index.reconstruct(spu).reshape(1, -1), n_items)
+        D, I = index.search(index.reconstruct(spu).reshape(1, -1), n_items + 1)
         # result = I.tolist()[0]
         result = {spu_index: round(score, 4) for spu_index, score in zip(I.tolist()[0], D.tolist()[0])
                   if spu_index != spu}
