@@ -12,21 +12,16 @@ app = Flask(__name__)
 
 @app.route("/faiss/similar_items/", methods=["GET"])
 def check():
-    # 默认返回内容
-    return_dict = {'code': '200', 'msg': '处理成功', 'result': False}
-    # 判断入参是否为空
-    if request.args is None:
-        return_dict['return_code'] = '504'
-        return_dict['return_info'] = '请求参数为空'
-        return jsonify(return_dict)
-    # 获取传入的参数
-    get_data = request.args.to_dict()
-    spu = int(get_data.get('spu'))
-    n_items = int(get_data.get('n_items'))
-    # 对参数进行操作
-    return_dict['result'] = faiss_search(spu, n_items)
+    try:
+        get_data = request.args.to_dict()
+        spu = int(get_data.get('spu'))
+        n_items = int(get_data.get('n_items'))
 
-    return jsonify(return_dict)
+    except Exception as e:
+        return jsonify({'code': 400, 'msg': '无效请求', 'trace': traceback.format_exc()}), 400
+
+    result = faiss_search(spu, n_items)
+    return jsonify({'code': 200, 'msg': '处理成功', 'result': result}), 200
 
 
 # 功能函数
