@@ -1,13 +1,10 @@
-from flask import Flask, request
-import json
-
+from flask import Flask, request, jsonify
 import faiss
 
 from utils import load_yaml_config
 
 config = load_yaml_config("./config.yml")
 faiss_model_path = config["model"]["faiss_model_path"]
-faiss_topn = config["model"]["faiss_topn"]
 index = faiss.read_index(faiss_model_path)
 
 app = Flask(__name__)
@@ -21,24 +18,27 @@ def check():
     if request.args is None:
         return_dict['return_code'] = '504'
         return_dict['return_info'] = '请求参数为空'
-        return json.dumps(return_dict, ensure_ascii=False)
+        return jsonify(return_dict)
     # 获取传入的参数
     get_data = request.args.to_dict()
     spu = int(get_data.get('spu'))
+    n_items = int(get_data.get('n_items'))
     # 对参数进行操作
-    return_dict['result'] = faiss_search(spu)
+    return_dict['result'] = faiss_search(spu, n_items)
 
-    return json.dumps(return_dict, ensure_ascii=False)
+    return jsonify(return_dict)
 
 
 # 功能函数
-def faiss_search(spu):
+def faiss_search(spu, n_items):
     try:
         # 通过spu重建向量
-        D, I = index.search(index.reconstruct(spu).reshape(1, -1), faiss_topn)
-        result = {spu_index: score for spu_index, score in zip(I.tolist()[0], D.tolist()[0]) if spu_index != spu}
-    except Exception as e:
-        result = {"1": 1, "2": 2}
+        D, I = index.search(index.reconstruct(spu).reshape(1, -1), n_items)
+        # result = I.tolist()[0]
+        result = {spu_index: round(score, 4) for spu_index, score in zip(I.tolist()[0], D.tolist()[0])
+                  if spu_index != spu}
+    except RuntimeError:
+        result = {"1": 1}
     return result
 
 
