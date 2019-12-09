@@ -2,6 +2,8 @@
 一个基于 fasttext + faiss + flask的商品相关推荐接口实现，商品内容相似推荐
 使用nginx+uwsgi+flask封装faiss检索接口
 
+#### 模型接口流程图
+![](process.png)
 
 #### 训练商品的特征向量，商品向量add到faiss
 ```
