@@ -1,4 +1,5 @@
 import traceback
+import datetime
 
 from flask import Flask, request, jsonify
 import faiss
@@ -8,6 +9,8 @@ from utils import load_yaml_config
 config = load_yaml_config("./config.yml")
 faiss_model_path = config["model"]["faiss_model_path"]
 index = faiss.read_index(faiss_model_path)
+
+model_update_time = ""
 
 app = Flask(__name__)
 
@@ -28,14 +31,26 @@ def check():
 
 # 功能函数
 def faiss_search(spu, n_items):
+    tim_str = datetime.datetime.now().strftime("%Y%m%d")
+    global model_update_time, index
+    
     try:
-        # 通过spu重建向量
-        D, I = index.search(index.reconstruct(spu).reshape(1, -1), n_items + 1)
-        # result = I.tolist()[0]
-        result = {spu_index: round(score, 4) for spu_index, score in zip(I.tolist()[0], D.tolist()[0])
-                  if spu_index != spu}
-    except RuntimeError:
-        result = {"1": 1}
+        if tim_str != model_update_time:
+            print("重新读取磁盘模型文件")
+            model_update_time = tim_str
+        
+            index = faiss.read_index(faiss_model_path)
+            D, I = index.search(index.reconstruct(spu).reshape(1, -1), n_items + 1)
+            result = {spu_index: round(score, 4) for spu_index, score in zip(I.tolist()[0], D.tolist()[0])
+                    if spu_index != spu}
+        else:
+            print("读取缓存模型文件")
+            D, I = index.search(index.reconstruct(spu).reshape(1, -1), n_items + 1)
+            result = {spu_index: round(score, 4) for spu_index, score in zip(I.tolist()[0], D.tolist()[0])
+                    if spu_index != spu}
+    except Exception as e:
+        result = []
+        
     return result
 
 
