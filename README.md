@@ -78,3 +78,21 @@ spu = 3
 |           6 | 卓德脱脂含乳饮品（水蜜桃口味）                                            |
 +-------------+---------------------------------------------------------------------------+
 ```
+
+#### 接口压力测试
+```
+siege -c 100 -t 10s -b "http://127.0.0.1:8089/faiss/similar_items/?spu=3&n_items=50"
+
+Transactions:		       41011 hits
+Availability:		      100.00 %
+Elapsed time:		        9.17 secs
+Data transferred:	       12.24 MB
+Response time:		        0.02 secs
+Transaction rate:	     4472.30 trans/sec
+Throughput:		        1.33 MB/sec
+Concurrency:		       99.57
+Successful transactions:       41011
+Failed transactions:	           0
+Longest transaction:	        0.07
+Shortest transaction:	        0.00
+```
