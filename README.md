@@ -1,5 +1,5 @@
 # recsys_faiss
-一个基于 fasttext + faiss + flask的商品内容相关推荐接口实现，使用nginx+uwsgi+flask封装faiss检索接口，用于在线embedding召回和商品详情页相关推荐
+一个基于 fasttext + faiss 的商品内容相关推荐接口实现，fasttext训练商品特征向量，faiss向量检索，restful接口采用nginx+uwsgi+flask，gunicorn+uvicorn+fastapi
 
 #### 商品详情页效果图
 将模型部署应用
@@ -98,4 +98,16 @@ Successful transactions:       41011
 Failed transactions:	           0
 Longest transaction:	        0.07
 Shortest transaction:	        0.00
+```
+
+#### fastapi
+```
+gunicorn faiss_fastapi:app -w 4 -k uvicorn.workers.UvicornWorker -D
+```
+```
+python
+>>> import requests
+>>> res = requests.get("http://127.0.0.1:8000/faiss/similar_items/?spu_id=3&n_items=10")
+>>> res.json()
+{'code': 200, 'msg': 'success', 'res': [4, 56486, 92237, 56484, 56485, 56481, 56482, 56483, 18, 20]}
 ```
