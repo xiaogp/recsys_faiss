@@ -1,0 +1,28 @@
+model:
+  fasttext_model_path: ./model/fasttext.model
+  embedding_size: 100
+  fasttext_epochs: 5
+  fasttext_min_count: 1
+  fasttext_sg: 1
+  fasttext_mode: train
+  faiss_mode: train
+  faiss_model_path: ./model/faiss.model
+  faiss_topn: 50
+  faiss_add_index: True
+  add_random: False
+
+data:
+  embedding_path: ./data/embedding.txt
+  top_spu_path: ./data/top_spu.pkl
+  mysql_host: 127.0.0.1
+  mysql_port: 3306
+  mysql_db: recsys
+  mysql_user: root
+  mysql_password: password
+
+weight:
+  PTY_NUM_1_weight: 0.1
+  PTY_NUM_2_weight: 0.2
+  PTY_NUM_3_weight: 0.3
+  PRODUCT_ORIGIN_weight: 0.1
+  BRAND_weight: 0.2
