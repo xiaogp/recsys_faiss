@@ -1,8 +1,9 @@
-stopPath: /Users/path/stopwords.txt
+stopPath: /path/library/stop.dic
 w2v_window_size: 5
 w2v_iter: 3
 w2v_vector_size: 100
 w2v_min_count: 0
 lsh_bucket_len: 4
 lsh_num_hash: 10
-lsh_threshold: 2.0
+lsh_threshold: 1
+topn: 100

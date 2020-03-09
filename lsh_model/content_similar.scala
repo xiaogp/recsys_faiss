@@ -9,6 +9,7 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.ml.feature.{Word2Vec, BucketedRandomProjectionLSH, Normalizer}
 import org.apache.spark.sql.Row
+import org.apache.spark.sql.expressions.Window
 import breeze.linalg.{DenseVector => BDV}
 import org.apache.spark.ml.linalg.{Vector, Vectors}
 
@@ -49,6 +50,7 @@ object content_similar {
     val lsh_bucket_len =  properties.getProperty("lsh_bucket_len").toInt
     val lsh_num_hash =  properties.getProperty("lsh_num_hash").toInt
     val lsh_threshold = properties.getProperty("lsh_threshold").toDouble
+    val topn = properties.getProperty("topn").toInt
 
     val spark = SparkSession.builder()
       .appName("content_similar")
@@ -60,7 +62,7 @@ object content_similar {
       .option("url", "jdbc:mysql://localhost:3306/recsys?useUnicode=true&characterEncoding=utf8&autoReconnect=true&useSSL=false")
       .option("user", "root")
       .option("password", "password")
-      .option("dbtable", "(select ITEM_NUM_ID, ITEM_NAME, PTY1_NAME, PTY2_NAME, PTY3_NAME, BRAND_NAME from goods_data) as t1")
+      .option("dbtable", s"(select ITEM_NUM_ID, ITEM_NAME, PTY1_NAME, PTY2_NAME, PTY3_NAME, BRAND_NAME from goodsdata) as t1")
       .load()
 
     val filter = getStopWord(stopPath)
@@ -75,7 +77,7 @@ object content_similar {
     // 训练word2vec
     val word2Vec = new Word2Vec()
       .setInputCol("seg")
-      .setOutputCol("res")
+      .setOutputCol("vec_avg")
       .setWindowSize(w2v_window_size)
       .setMaxIter(w2v_iter)
       .setVectorSize(w2v_vector_size)
@@ -83,26 +85,29 @@ object content_similar {
 
     val model = word2Vec.fit(df2)
 
+    // transform转化为向量的平均值
+    val vec_avg_df = model.transform(df2)
+
     // 向量归一化
     val normalizer = new Normalizer()
-      .setInputCol("vector")
-      .setOutputCol("normal_vector")
+      .setInputCol("vec_avg")
+      .setOutputCol("vec")
       .setP(1.0)
 
-    val vector_df = normalizer.transform(model.getVectors).drop($"vector")
+    val vector_df = normalizer.transform(vec_avg_df).drop($"vec_avg")
 
-    // explode所有商品的词
-    val df3 = df2.withColumn("word", explode($"seg"))
-
-    // join
-    val df4 = df3.join(vector_df, Seq("word"), "inner").select($"ITEM_NUM_ID", $"normal_vector")
-
-    // 词向量相加
-    val vec_sum_df = df4.rdd
-      .map { case Row(k: Long, v: Vector) => (k, BDV(v.toDense.values)) }
-      .foldByKey(BDV.zeros[Double](w2v_vector_size))(_ += _)
-      .mapValues(v => Vectors.dense(v.toArray))
-      .toDF("id", "vec")
+//     explode所有商品的词
+//    val df3 = df2.withColumn("word", explode($"seg"))
+//
+//    // join
+//    val df4 = df3.join(vector_df, Seq("word"), "inner").select($"ITEM_NUM_ID", $"normal_vector")
+//
+//    // 词向量相加
+//    val vec_sum_df = df4.rdd
+//      .map { case Row(k: Long, v: Vector) => (k, BDV(v.toDense.values)) }
+//      .foldByKey(BDV.zeros[Double](w2v_vector_size))(_ += _)
+//      .mapValues(v => Vectors.dense(v.toArray))
+//      .toDF("id", "vec")
 
     // LSH
     val brp = new BucketedRandomProjectionLSH()
@@ -110,18 +115,19 @@ object content_similar {
       .setNumHashTables(lsh_num_hash)
       .setInputCol("vec")
       .setOutputCol("hashes")
-    val brpModel = brp.fit(vec_sum_df)
+    val brpModel = brp.fit(vector_df)
 
-    val brpDf = brpModel.approxSimilarityJoin(vec_sum_df, vec_sum_df, lsh_threshold, "EuclideanDistance")
+    val brpDf = brpModel.approxSimilarityJoin(vector_df, vector_df, lsh_threshold, "EuclideanDistance")
 
     // 结果整理
     val getid_df = brpDf
-      .sort($"EuclideanDistance")
       .withColumn("datasetA", udf((input: Row) => {input(0).toString}).apply($"datasetA"))
       .withColumn("datasetB", udf((input: Row) => {input(0).toString}).apply($"datasetB"))
-      .drop("EuclideanDistance")
-      .toDF("id_i", "id_j")
+      .withColumnRenamed("datasetA", "id_i")
+      .withColumnRenamed("datasetB", "id_j")
       .filter("id_i != id_j")
+      .withColumn("rank", row_number().over(Window.partitionBy("id_i").orderBy($"EuclideanDistance")))
+      .filter($"rank" <= topn)
       .groupBy($"id_i")
       .agg(concat_ws(",", collect_list($"id_j")))
       .toDF("id", "recommend")
